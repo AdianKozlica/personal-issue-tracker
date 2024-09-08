@@ -32,6 +32,15 @@ def ansi(priority: str):
     COLOR = get_color(priority)
     return f'{COLOR}{priority}\033[0m'
 
+def get_priority_num(priority: str):
+    match priority:
+        case 'HIGH':
+            return 2
+        case 'MEDIUM':
+            return 1
+        case _:
+            return 0
+
 def get_issue_path(name: str, check_if_exists=False):
     issue_path = os.path.join(ISSUES_DIR, f'{name}.md')
 
@@ -94,13 +103,27 @@ def delete_issue(name: str):
     issue_path = get_issue_path(name, True)
     os.remove(issue_path)
 
-def get_issues():
+def get_issues(sort: str, wanted_priority: str | None = None):
+    issue_list: list[list[str]] = []
+
     for path in os.listdir(ISSUES_DIR):
         name = Path(path).stem
         title, priority, due = parse_metadata(
             os.path.join(ISSUES_DIR, path)
         )
         
+        issue_list.append([name, title, priority])
+    
+    issue_list.sort(
+        key=lambda item: get_priority_num(item[2]), 
+        reverse=False if sort == 'asc' else True
+    )
+
+    for name, title, priority in issue_list:
+        if wanted_priority:
+            if priority != wanted_priority:
+                continue 
+
         print('Name:', name)
         print(title)
         print('Priority:', ansi(priority))
@@ -115,6 +138,20 @@ def get_args():
     parser.add_argument('-n', '--new', help='Creates a new issue')
     parser.add_argument('-d', '--delete', help='Deletes a issue')
     parser.add_argument('-e', '--edit', help='Opens an editor for an issue')
+    parser.add_argument(
+        '-s', 
+        '--sort', 
+        choices=['asc', 'desc'], 
+        default='desc', 
+        help='Sort by issue priority',
+        type=str.lower
+    )
+    parser.add_argument(
+        '-q', '--search', 
+        choices=['LOW', 'MEDIUM', 'HIGH'],
+        type=str.upper,
+        help='Search by priority'
+    )
 
     return parser.parse_args()
 
@@ -133,7 +170,7 @@ def main():
         delete_issue(args.delete)
 
     else:
-        get_issues()
+        get_issues(args.sort, args.search)
 
 if __name__ == '__main__':
     main()
