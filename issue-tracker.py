@@ -139,7 +139,8 @@ def get_args():
         '--sort', 
         choices=['asc', 'desc'], 
         default='desc', 
-        help='Sort by issue priority'
+        help='Sort by issue priority',
+        type=str.lower
     )
 
     return parser.parse_args()
