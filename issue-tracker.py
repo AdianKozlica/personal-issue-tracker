@@ -20,13 +20,13 @@ def check_issues_dir():
 def get_color(priority: str):
     match priority:
         case 'LOW':
-            return '\x1b[48;2;0;0;255m'
+            return '\x1b[38;2;0;0;255m'
         case 'MEDIUM':
-            return '\x1b[48;2;255;255;0m'
+            return '\x1b[38;2;255;255;0m'
         case 'HIGH':
-            return '\x1b[48;2;255;0;0m'
+            return '\x1b[38;2;255;0;0m'
     
-    return '\x1b[48;2;255;0;0'
+    return '\x1b[38;2;255;0;0'
 
 def ansi(priority: str):
     COLOR = get_color(priority)
@@ -105,6 +105,7 @@ def get_issues():
         print(title)
         print('Priority:', ansi(priority))
         print(due)
+        print()
 
 def get_args():
     parser = argparse.ArgumentParser(
