@@ -111,7 +111,6 @@ def get_args():
         prog='Personal CLI issue tracker',
     )
 
-    parser.add_argument('-i', '--issues', action='store_true', default=False, help='Lists all issues')
     parser.add_argument('-n', '--new', help='Creates a new issue')
     parser.add_argument('-d', '--delete', help='Deletes a issue')
     parser.add_argument('-e', '--edit', help='Opens an editor for an issue')
@@ -123,10 +122,7 @@ def main():
     
     args = get_args()
 
-    if args.issues:
-        get_issues()
-
-    elif args.new:
+    if args.new:
         new_issue(args.new)
 
     elif args.edit:
@@ -134,6 +130,9 @@ def main():
     
     elif args.delete:
         delete_issue(args.delete)
+
+    else:
+        get_issues()
 
 if __name__ == '__main__':
     main()
