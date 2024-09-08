@@ -1,12 +1,16 @@
 #!/usr/bin/python3
+from datetime import datetime
 from pathlib import Path
 
 import os
 import argparse
 import subprocess
 
+def get_current_datetime():
+    return datetime.now().strftime('%d-%m-%Y %H:%M')
+
 ISSUES_DIR = os.path.join(os.getenv('HOME'), '.issues')
-INITIAL_TEXT = 'Title: Title Goes Here\nPriority: LOW\n\nContent goes here'
+INITIAL_TEXT = f'Title: Title Goes Here\nPriority: LOW\nDue: {get_current_datetime()}\n\nContent goes here'
 PRIORITIES = { 'LOW', 'MEDIUM', 'HIGH' }
 
 def check_issues_dir():
@@ -44,10 +48,10 @@ def parse_metadata(path: str):
     lines: list[str] = []
     
     with open(path, 'r') as file:
-        for _ in range(2):
+        for _ in range(3):
             lines.append(next(file))
 
-    title, priority = lines
+    title, priority, due = lines
 
     if not title.startswith('Title:'):
         raise SyntaxError('Title not found!')
@@ -55,13 +59,12 @@ def parse_metadata(path: str):
     if not priority.startswith('Priority:'):
         raise SyntaxError('Priority not found!')
     
-    title = title.split('Title:')[1].strip()
-    priority = priority.split('Priority:')[1].strip()
+    priority = priority.split('Priority:')[1].strip().upper()
 
     if priority not in PRIORITIES:
         raise SyntaxError('Priority must be in', PRIORITIES)
     
-    return title, priority
+    return title.strip(), priority, due.strip()
 
 def new_issue(name: str):
     if not name:
@@ -94,14 +97,14 @@ def delete_issue(name: str):
 def get_issues():
     for path in os.listdir(ISSUES_DIR):
         name = Path(path).stem
-        title, priority = parse_metadata(
+        title, priority, due = parse_metadata(
             os.path.join(ISSUES_DIR, path)
         )
         
         print('Name:', name)
-        print('Issue:', title)
+        print(title)
         print('Priority:', ansi(priority))
-        print()
+        print(due)
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -109,10 +112,9 @@ def get_args():
     )
 
     parser.add_argument('-i', '--issues', action='store_true', default=False, help='Lists all issues')
-    parser.add_argument('-n', '--new', action='store_true', default=False, help='Creates a new issue')
-    parser.add_argument('-d', '--delete', action='store_true', default=False, help='Deletes a issue')
-    parser.add_argument('-e', '--edit', action='store_true', default=False, help='Opens an editor for an issue')
-    parser.add_argument('--name')
+    parser.add_argument('-n', '--new', help='Creates a new issue')
+    parser.add_argument('-d', '--delete', help='Deletes a issue')
+    parser.add_argument('-e', '--edit', help='Opens an editor for an issue')
 
     return parser.parse_args()
 
@@ -125,13 +127,13 @@ def main():
         get_issues()
 
     elif args.new:
-        new_issue(args.name)
+        new_issue(args.new)
 
     elif args.edit:
-        edit_issue(args.name)
+        edit_issue(args.edit)
     
     elif args.delete:
-        delete_issue(args.name)
+        delete_issue(args.delete)
 
 if __name__ == '__main__':
     main()
