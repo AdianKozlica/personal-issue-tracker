@@ -59,7 +59,7 @@ def parse_metadata(path: str):
     if not priority.startswith('Priority:'):
         raise SyntaxError('Priority not found!')
     
-    priority = priority.split('Priority:')[1].strip()
+    priority = priority.split('Priority:')[1].strip().upper()
 
     if priority not in PRIORITIES:
         raise SyntaxError('Priority must be in', PRIORITIES)
