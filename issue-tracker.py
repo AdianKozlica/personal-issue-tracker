@@ -103,7 +103,7 @@ def delete_issue(name: str):
     issue_path = get_issue_path(name, True)
     os.remove(issue_path)
 
-def get_issues(sort: str):
+def get_issues(sort: str, wanted_priority: str | None = None):
     issue_list: list[list[str]] = []
 
     for path in os.listdir(ISSUES_DIR):
@@ -120,6 +120,10 @@ def get_issues(sort: str):
     )
 
     for name, title, priority in issue_list:
+        if wanted_priority:
+            if priority != wanted_priority:
+                continue 
+
         print('Name:', name)
         print(title)
         print('Priority:', ansi(priority))
@@ -142,6 +146,12 @@ def get_args():
         help='Sort by issue priority',
         type=str.lower
     )
+    parser.add_argument(
+        '-q', '--search', 
+        choices=['LOW', 'MEDIUM', 'HIGH'],
+        type=str.upper,
+        help='Search by priority'
+    )
 
     return parser.parse_args()
 
@@ -160,7 +170,7 @@ def main():
         delete_issue(args.delete)
 
     else:
-        get_issues(args.sort)
+        get_issues(args.sort, args.search)
 
 if __name__ == '__main__':
     main()
