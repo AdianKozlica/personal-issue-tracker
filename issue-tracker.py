@@ -147,7 +147,7 @@ def get_args():
         type=str.lower
     )
     parser.add_argument(
-        '-q', '--search', 
+        '-p', '--priority', 
         choices=['LOW', 'MEDIUM', 'HIGH'],
         type=str.upper,
         help='Search by priority'
@@ -177,7 +177,7 @@ def main():
         delete_issue(args.directory, args.delete)
 
     else:
-        get_issues(args.directory, args.sort, args.search)
+        get_issues(args.directory, args.sort, args.priority)
 
 if __name__ == '__main__':
     main()
