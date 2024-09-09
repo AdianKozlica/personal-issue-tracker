@@ -10,12 +10,14 @@ def get_current_datetime():
     return datetime.now().strftime('%d-%m-%Y %H:%M')
 
 ISSUES_DIR = os.path.join(os.getenv('HOME'), '.issues')
-INITIAL_TEXT = f'Title: Title Goes Here\nPriority: LOW\nDue: {get_current_datetime()}\n\nContent goes here'
 PRIORITIES = { 'LOW', 'MEDIUM', 'HIGH' }
 
-def check_issues_dir():
-    if not os.path.exists(ISSUES_DIR):
-        os.mkdir(ISSUES_DIR)
+def check_issues_dir(issues_dir: str):
+    if not os.path.exists(issues_dir):
+        os.mkdir(issues_dir)
+
+def get_initial_text(name: str):
+    return f'Title: {name}\nPriority: LOW\nDue: {get_current_datetime()}\n\nContent goes here'
 
 def get_color(priority: str):
     match priority:
@@ -41,8 +43,8 @@ def get_priority_num(priority: str):
         case _:
             return 0
 
-def get_issue_path(name: str, check_if_exists=False):
-    issue_path = os.path.join(ISSUES_DIR, f'{name}.md')
+def get_issue_path(issues_dir: str, name: str, check_if_exists=False):
+    issue_path = os.path.join(issues_dir, f'{name}.md')
 
     if check_if_exists:
         if not os.path.exists(issue_path):
@@ -75,51 +77,53 @@ def parse_metadata(path: str):
     
     return title.strip(), priority, due.strip()
 
-def new_issue(name: str):
+def new_issue(issues_dir: str, name: str):
     if not name:
         raise RuntimeError('Name must not be empty')
 
-    issue_path = get_issue_path(name)
+    issue_path = get_issue_path(issues_dir, name)
 
     if os.path.exists(issue_path):
         raise FileExistsError()
     
     with open(issue_path, 'w') as file:
-        file.write(INITIAL_TEXT)
+        file.write(
+            get_initial_text(name)
+        )
     
     open_with_editor(issue_path)
 
-def edit_issue(name: str):
+def edit_issue(issues_dir: str, name: str):
     if not name:
         raise RuntimeError('Name must not be empty')
 
-    issue_path = get_issue_path(name, True)
+    issue_path = get_issue_path(issues_dir, name, True)
     open_with_editor(issue_path)
 
-def delete_issue(name: str):
+def delete_issue(issues_dir: str, name: str):
     if not name:
         raise RuntimeError('Name must not be empty')
     
-    issue_path = get_issue_path(name, True)
+    issue_path = get_issue_path(issues_dir, name, True)
     os.remove(issue_path)
 
-def get_issues(sort: str, wanted_priority: str | None = None):
+def get_issues(issues_dir: str, sort: str, wanted_priority: str | None = None):
     issue_list: list[list[str]] = []
 
-    for path in os.listdir(ISSUES_DIR):
+    for path in os.listdir(issues_dir):
         name = Path(path).stem
         title, priority, due = parse_metadata(
-            os.path.join(ISSUES_DIR, path)
+            os.path.join(issues_dir, path)
         )
         
-        issue_list.append([name, title, priority])
+        issue_list.append([name, title, priority, due])
     
     issue_list.sort(
         key=lambda item: get_priority_num(item[2]), 
         reverse=False if sort == 'asc' else True
     )
 
-    for name, title, priority in issue_list:
+    for name, title, priority, due in issue_list:
         if wanted_priority:
             if priority != wanted_priority:
                 continue 
@@ -147,30 +151,37 @@ def get_args():
         type=str.lower
     )
     parser.add_argument(
-        '-q', '--search', 
+        '-p', '--priority', 
         choices=['LOW', 'MEDIUM', 'HIGH'],
         type=str.upper,
         help='Search by priority'
     )
 
+    parser.add_argument(
+        '--directory',
+        default=ISSUES_DIR,
+        help='Custom issues directory',
+        type=os.path.expanduser
+    )
+
     return parser.parse_args()
 
 def main():
-    check_issues_dir()
-    
     args = get_args()
+    
+    check_issues_dir(args.directory)
 
     if args.new:
-        new_issue(args.new)
+        new_issue(args.directory, args.new)
 
     elif args.edit:
-        edit_issue(args.edit)
+        edit_issue(args.directory, args.edit)
     
     elif args.delete:
-        delete_issue(args.delete)
+        delete_issue(args.directory, args.delete)
 
     else:
-        get_issues(args.sort, args.search)
+        get_issues(args.directory, args.sort, args.priority)
 
 if __name__ == '__main__':
     main()
