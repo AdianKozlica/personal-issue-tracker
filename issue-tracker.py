@@ -110,7 +110,11 @@ def delete_issue(issues_dir: str, name: str):
     issue_path = get_issue_path(issues_dir, name, True)
     os.remove(issue_path)
 
-def get_issues(issues_dir: str, sort: str, wanted_priority: str | None = None):
+def get_issues(
+        issues_dir: str, 
+        sort: str, wanted_priority: str | None = None,
+        grid = 2
+    ):
     issue_list: list[list[str]] = []
 
     for path in os.listdir(issues_dir):
@@ -135,7 +139,7 @@ def get_issues(issues_dir: str, sort: str, wanted_priority: str | None = None):
         for item in issue:
             max_len = max(max_len, len(item))
 
-    for chunk in chunks(issue_list, 3):
+    for chunk in chunks(issue_list, grid):
         for j in range(4):
             for i in range(len(chunk)):
                 string = chunk[i][j]
@@ -183,6 +187,13 @@ def get_args():
         type=os.path.expanduser
     )
 
+    parser.add_argument(
+        '--grid',
+        default=2,
+        help='Specify N x N grid for displaying issues',
+        type=int
+    )
+
     return parser.parse_args()
 
 def main():
@@ -200,7 +211,7 @@ def main():
         delete_issue(args.directory, args.delete)
 
     else:
-        get_issues(args.directory, args.sort, args.priority)
+        get_issues(args.directory, args.sort, args.priority, args.grid)
 
 if __name__ == '__main__':
     main()
