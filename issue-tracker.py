@@ -16,6 +16,9 @@ def check_issues_dir(issues_dir: str):
     if not os.path.exists(issues_dir):
         os.mkdir(issues_dir)
 
+def chunks(l: list, n: int):
+    return [l[i:i + n] for i in range(0, len(l), n)]
+
 def get_initial_text(name: str):
     return f'Title: {name}\nPriority: LOW\nDue: {get_current_datetime()}\n\nContent goes here'
 
@@ -115,6 +118,9 @@ def get_issues(issues_dir: str, sort: str, wanted_priority: str | None = None):
         title, priority, due = parse_metadata(
             os.path.join(issues_dir, path)
         )
+        if wanted_priority:
+            if priority != wanted_priority:
+                continue
         
         issue_list.append([name, title, priority, due])
     
@@ -123,15 +129,28 @@ def get_issues(issues_dir: str, sort: str, wanted_priority: str | None = None):
         reverse=False if sort == 'asc' else True
     )
 
-    for name, title, priority, due in issue_list:
-        if wanted_priority:
-            if priority != wanted_priority:
-                continue 
+    max_len = 0
 
-        print('Name:', name)
-        print(title)
-        print('Priority:', ansi(priority))
-        print(due)
+    for issue in issue_list:
+        for item in issue:
+            max_len = max(max_len, len(item))
+
+    for chunk in chunks(issue_list, 3):
+        for j in range(4):
+            for i in range(len(chunk)):
+                string = chunk[i][j]
+                str_len = len(string)
+
+                if j == 0:
+                    string = f'Name: {string}'
+                    str_len += len('Name: ')
+
+                elif j == 2:
+                    string = f'Priority: {ansi(string)}'
+                    str_len += len('Priority: ')
+
+                print('|' if i == 0 else '', string, end=' ' * (max_len - str_len + 1) + '|')
+            print()
         print()
 
 def get_args():
