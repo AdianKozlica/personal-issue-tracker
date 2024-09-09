@@ -112,14 +112,14 @@ def get_issues(sort: str, wanted_priority: str | None = None):
             os.path.join(ISSUES_DIR, path)
         )
         
-        issue_list.append([name, title, priority])
+        issue_list.append([name, title, priority, due])
     
     issue_list.sort(
         key=lambda item: get_priority_num(item[2]), 
         reverse=False if sort == 'asc' else True
     )
 
-    for name, title, priority in issue_list:
+    for name, title, priority, due in issue_list:
         if wanted_priority:
             if priority != wanted_priority:
                 continue 
