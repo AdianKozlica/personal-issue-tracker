@@ -10,12 +10,14 @@ def get_current_datetime():
     return datetime.now().strftime('%d-%m-%Y %H:%M')
 
 ISSUES_DIR = os.path.join(os.getenv('HOME'), '.issues')
-INITIAL_TEXT = f'Title: Title Goes Here\nPriority: LOW\nDue: {get_current_datetime()}\n\nContent goes here'
 PRIORITIES = { 'LOW', 'MEDIUM', 'HIGH' }
 
 def check_issues_dir(issues_dir: str):
     if not os.path.exists(issues_dir):
         os.mkdir(issues_dir)
+
+def get_initial_text(name: str):
+    return f'Title: {name}\nPriority: LOW\nDue: {get_current_datetime()}\n\nContent goes here'
 
 def get_color(priority: str):
     match priority:
@@ -85,7 +87,9 @@ def new_issue(issues_dir: str, name: str):
         raise FileExistsError()
     
     with open(issue_path, 'w') as file:
-        file.write(INITIAL_TEXT)
+        file.write(
+            get_initial_text(name)
+        )
     
     open_with_editor(issue_path)
 
