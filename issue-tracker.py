@@ -130,7 +130,7 @@ def get_issues(
     max_len = 0
 
     for issue in issue_list:
-        for j, item in enumerate(issue):
+        for item in issue:
             max_len = max(max_len, len(item))
 
     for chunk in chunks(issue_list, grid):
