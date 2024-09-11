@@ -9,6 +9,14 @@ import subprocess
 def get_current_datetime():
     return datetime.now().strftime('%d-%m-%Y %H:%M')
 
+def validate_grid(n: str):
+    n = int(n)
+    
+    if n < 1:
+        raise RuntimeError('Grid number must be greater or equal to 1')
+
+    return n
+
 ISSUES_DIR = os.path.join(os.getenv('HOME'), '.issues')
 PRIORITIES = { 'LOW', 'MEDIUM', 'HIGH' }
 
@@ -191,7 +199,7 @@ def get_args():
         '--grid',
         default=2,
         help='Specify N x N grid for displaying issues',
-        type=int
+        type=validate_grid
     )
 
     return parser.parse_args()
