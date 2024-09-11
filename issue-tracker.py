@@ -22,20 +22,14 @@ def chunks(l: list, n: int):
 def get_initial_text(name: str):
     return f'Title: {name}\nPriority: LOW\nDue: {get_current_datetime()}\n\nContent goes here'
 
-def get_color(priority: str):
+def ansi(priority: str):
     match priority:
         case 'LOW':
-            return '\x1b[38;2;0;0;255m'
+            return '\x1b[38;2;255;255;255m▄\x1b[0m\x1b[38;2;128;128;128m▆█\x1b[0m'
         case 'MEDIUM':
-            return '\x1b[38;2;255;255;0m'
-        case 'HIGH':
-            return '\x1b[38;2;255;0;0m'
-    
-    return '\x1b[38;2;255;0;0'
-
-def ansi(priority: str):
-    COLOR = get_color(priority)
-    return f'{COLOR}{priority}\033[0m'
+            return '\x1b[38;2;255;255;255m▄▆\x1b[0m\x1b[38;2;128;128;128m█\x1b[0m'
+        case _:
+            return '\x1b[38;2;255;255;255m▄▆█\x1b[0m'
 
 def get_priority_num(priority: str):
     match priority:
@@ -136,7 +130,7 @@ def get_issues(
     max_len = 0
 
     for issue in issue_list:
-        for item in issue:
+        for j, item in enumerate(issue):
             max_len = max(max_len, len(item))
 
     for chunk in chunks(issue_list, grid):
@@ -144,16 +138,22 @@ def get_issues(
             for i in range(len(chunk)):
                 string = chunk[i][j]
                 str_len = len(string)
+                subtract = 0
 
                 if j == 0:
                     string = f'Name: {string}'
                     str_len += len('Name: ')
 
                 elif j == 2:
+                    if string == 'HIGH':
+                        subtract = 1
+                    elif string == 'MEDIUM':
+                        subtract = 3
+
                     string = f'Priority: {ansi(string)}'
                     str_len += len('Priority: ')
-
-                print('|' if i == 0 else '', string, end=' ' * (max_len - str_len + 1) + '|')
+                    
+                print('|' if i == 0 else '', string, end=' ' * (abs(str_len - max_len - subtract) + 2) + '|') # This works......
             print()
         print()
 
