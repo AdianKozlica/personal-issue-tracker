@@ -2,7 +2,10 @@
 from datetime import datetime
 from pathlib import Path
 
+import io
 import os
+import csv
+import json
 import argparse
 import subprocess
 
@@ -112,12 +115,12 @@ def delete_issue(issues_dir: str, name: str):
     issue_path = get_issue_path(issues_dir, name, True)
     os.remove(issue_path)
 
-def get_issues(
-        issues_dir: str, 
-        sort: str, wanted_priority: str | None = None,
-        grid = 2
-    ):
-    issue_list: list[list[str]] = []
+def get_issue_list(
+    issues_dir: str,
+    sort: str,
+    wanted_priority: str | None = None 
+):
+    issue_list = []
 
     for path in os.listdir(issues_dir):
         name = Path(path).stem
@@ -133,6 +136,73 @@ def get_issues(
     issue_list.sort(
         key=lambda item: get_priority_num(item[2]), 
         reverse=False if sort == 'asc' else True
+    )
+
+    return issue_list
+
+def get_issues_json(
+    issues_dir: str,
+    sort: str,
+    wanted_priorty: str | None = None
+):
+    issue_list = get_issue_list(
+        issues_dir,
+        sort,
+        wanted_priorty,
+    )
+
+    issues_json_list = []
+
+    for name, title, priority, due in issue_list:
+        issues_json_list.append({
+            'name': name,
+            'title': title.split('Title:')[1].strip(),
+            'priority': priority,
+            'due': due.split('Due:')[1].strip()
+        })
+    
+    print(
+        json.dumps(
+            { 'issues': issues_json_list }, 
+            indent=2
+        )
+    )
+
+def get_issues_csv(
+    issues_dir: str,
+    sort: str,
+    wanted_priority: str | None = None,
+):
+    with io.StringIO() as file:
+        csv_writer = csv.writer(file, delimiter=';')
+        csv_writer.writerow(['Name', 'Title', 'Priority', 'Due'])
+
+        issue_list =  get_issue_list(
+            issues_dir,
+            sort,
+            wanted_priority
+        )
+
+        for name, title, priority, due in issue_list:
+            csv_writer.writerow([
+                name,
+                title.split('Title:')[1].strip(),
+                priority,
+                due.split('Due:')[1].strip()
+            ])
+
+        print(file.getvalue())
+
+def get_issues(
+    issues_dir: str, 
+    sort: str, 
+    wanted_priority: str | None = None,
+    grid = 2
+):
+    issue_list =  get_issue_list(
+        issues_dir,
+        sort,
+        wanted_priority
     )
 
     max_len = 0
@@ -161,7 +231,7 @@ def get_issues(
                     string = f'Priority: {ansi(string)}'
                     str_len += len('Priority: ')
                     
-                print('|' if i == 0 else '', string, end=' ' * (abs(str_len - max_len - subtract) + 2) + '|') # This works......
+                print('|' if i == 0 else '', string, end=' ' * (abs(str_len - max_len - subtract) + 2) + '|') # This works...
             print()
         print()
 
@@ -173,6 +243,7 @@ def get_args():
     parser.add_argument('-n', '--new', help='Create a new issue.')
     parser.add_argument('-d', '--delete', help='Delete an issue by name.')
     parser.add_argument('-e', '--edit', help='Edit an existing issue by name.')
+    
     parser.add_argument(
         '-s', 
         '--sort', 
@@ -181,6 +252,7 @@ def get_args():
         help='Sort issues by priority.',
         type=str.lower
     )
+    
     parser.add_argument(
         '-p', '--priority', 
         choices=['LOW', 'MEDIUM', 'HIGH'],
@@ -202,6 +274,20 @@ def get_args():
         type=validate_grid
     )
 
+    parser.add_argument(
+        '--json',
+        action='store_true',
+        default=False,
+        help='Output issues in JSON format.',
+    )
+
+    parser.add_argument(
+        '--csv',
+        action='store_true',
+        default=False,
+        help='Output issues in CSV format.',
+    )
+
     return parser.parse_args()
 
 def main():
@@ -217,6 +303,12 @@ def main():
     
     elif args.delete:
         delete_issue(args.directory, args.delete)
+
+    elif args.json:
+        get_issues_json(args.directory, args.sort, args.priority)
+
+    elif args.csv:
+        get_issues_csv(args.directory, args.sort, args.priority)
 
     else:
         get_issues(args.directory, args.sort, args.priority, args.grid)
