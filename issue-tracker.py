@@ -278,14 +278,14 @@ def get_args():
         '--json',
         action='store_true',
         default=False,
-        help='JSON Output',
+        help='Output issues in JSON format.',
     )
 
     parser.add_argument(
         '--csv',
         action='store_true',
         default=False,
-        help='CSV Output',
+        help='Output issues in CSV format.',
     )
 
     return parser.parse_args()
