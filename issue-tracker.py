@@ -204,7 +204,7 @@ def get_issues(
                     string = f'Priority: {ansi(string)}'
                     str_len += len('Priority: ')
                     
-                print('|' if i == 0 else '', string, end=' ' * (abs(str_len - max_len - subtract) + 2) + '|') # This works......
+                print('|' if i == 0 else '', string, end=' ' * (abs(str_len - max_len - subtract) + 2) + '|') # This works...
             print()
         print()
 
