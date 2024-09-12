@@ -2,7 +2,9 @@
 from datetime import datetime
 from pathlib import Path
 
+import io
 import os
+import csv
 import json
 import argparse
 import subprocess
@@ -166,6 +168,31 @@ def get_issues_json(
         )
     )
 
+def get_issues_csv(
+    issues_dir: str,
+    sort: str,
+    wanted_priority: str | None = None,
+):
+    with io.StringIO() as file:
+        csv_writer = csv.writer(file, delimiter=';')
+        csv_writer.writerow(['Name', 'Title', 'Priority', 'Due'])
+
+        issue_list =  get_issue_list(
+            issues_dir,
+            sort,
+            wanted_priority
+        )
+
+        for name, title, priority, due in issue_list:
+            csv_writer.writerow([
+                name,
+                title.split('Title:')[1].strip(),
+                priority,
+                due.split('Due:')[1].strip()
+            ])
+
+        print(file.getvalue())
+
 def get_issues(
     issues_dir: str, 
     sort: str, 
@@ -254,6 +281,13 @@ def get_args():
         help='JSON Output',
     )
 
+    parser.add_argument(
+        '--csv',
+        action='store_true',
+        default=False,
+        help='CSV Output',
+    )
+
     return parser.parse_args()
 
 def main():
@@ -272,6 +306,9 @@ def main():
 
     elif args.json:
         get_issues_json(args.directory, args.sort, args.priority)
+
+    elif args.csv:
+        get_issues_csv(args.directory, args.sort, args.priority)
 
     else:
         get_issues(args.directory, args.sort, args.priority, args.grid)
