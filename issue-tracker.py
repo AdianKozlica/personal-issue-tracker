@@ -9,6 +9,14 @@ import subprocess
 def get_current_datetime():
     return datetime.now().strftime('%d-%m-%Y %H:%M')
 
+def validate_grid(n: str):
+    n = int(n)
+    
+    if n < 1:
+        raise RuntimeError('Grid number must be greater or equal to 1')
+
+    return n
+
 ISSUES_DIR = os.path.join(os.getenv('HOME'), '.issues')
 PRIORITIES = { 'LOW', 'MEDIUM', 'HIGH' }
 
@@ -16,23 +24,20 @@ def check_issues_dir(issues_dir: str):
     if not os.path.exists(issues_dir):
         os.mkdir(issues_dir)
 
+def chunks(l: list, n: int):
+    return [l[i:i + n] for i in range(0, len(l), n)]
+
 def get_initial_text(name: str):
     return f'Title: {name}\nPriority: LOW\nDue: {get_current_datetime()}\n\nContent goes here'
 
-def get_color(priority: str):
+def ansi(priority: str):
     match priority:
         case 'LOW':
-            return '\x1b[38;2;0;0;255m'
+            return '\x1b[38;2;255;255;255m▄\x1b[0m\x1b[38;2;128;128;128m▆█\x1b[0m'
         case 'MEDIUM':
-            return '\x1b[38;2;255;255;0m'
-        case 'HIGH':
-            return '\x1b[38;2;255;0;0m'
-    
-    return '\x1b[38;2;255;0;0'
-
-def ansi(priority: str):
-    COLOR = get_color(priority)
-    return f'{COLOR}{priority}\033[0m'
+            return '\x1b[38;2;255;255;255m▄▆\x1b[0m\x1b[38;2;128;128;128m█\x1b[0m'
+        case _:
+            return '\x1b[38;2;255;255;255m▄▆█\x1b[0m'
 
 def get_priority_num(priority: str):
     match priority:
@@ -107,7 +112,11 @@ def delete_issue(issues_dir: str, name: str):
     issue_path = get_issue_path(issues_dir, name, True)
     os.remove(issue_path)
 
-def get_issues(issues_dir: str, sort: str, wanted_priority: str | None = None):
+def get_issues(
+        issues_dir: str, 
+        sort: str, wanted_priority: str | None = None,
+        grid = 2
+    ):
     issue_list: list[list[str]] = []
 
     for path in os.listdir(issues_dir):
@@ -115,6 +124,9 @@ def get_issues(issues_dir: str, sort: str, wanted_priority: str | None = None):
         title, priority, due = parse_metadata(
             os.path.join(issues_dir, path)
         )
+        if wanted_priority:
+            if priority != wanted_priority:
+                continue
         
         issue_list.append([name, title, priority, due])
     
@@ -123,15 +135,34 @@ def get_issues(issues_dir: str, sort: str, wanted_priority: str | None = None):
         reverse=False if sort == 'asc' else True
     )
 
-    for name, title, priority, due in issue_list:
-        if wanted_priority:
-            if priority != wanted_priority:
-                continue 
+    max_len = 0
 
-        print('Name:', name)
-        print(title)
-        print('Priority:', ansi(priority))
-        print(due)
+    for issue in issue_list:
+        for item in issue:
+            max_len = max(max_len, len(item))
+
+    for chunk in chunks(issue_list, grid):
+        for j in range(4):
+            for i in range(len(chunk)):
+                string = chunk[i][j]
+                str_len = len(string)
+                subtract = 0
+
+                if j == 0:
+                    string = f'Name: {string}'
+                    str_len += len('Name: ')
+
+                elif j == 2:
+                    if string == 'HIGH':
+                        subtract = 1
+                    elif string == 'MEDIUM':
+                        subtract = 3
+
+                    string = f'Priority: {ansi(string)}'
+                    str_len += len('Priority: ')
+                    
+                print('|' if i == 0 else '', string, end=' ' * (abs(str_len - max_len - subtract) + 2) + '|') # This works......
+            print()
         print()
 
 def get_args():
@@ -139,29 +170,36 @@ def get_args():
         prog='Personal CLI issue tracker',
     )
 
-    parser.add_argument('-n', '--new', help='Creates a new issue')
-    parser.add_argument('-d', '--delete', help='Deletes a issue')
-    parser.add_argument('-e', '--edit', help='Opens an editor for an issue')
+    parser.add_argument('-n', '--new', help='Create a new issue.')
+    parser.add_argument('-d', '--delete', help='Delete an issue by name.')
+    parser.add_argument('-e', '--edit', help='Edit an existing issue by name.')
     parser.add_argument(
         '-s', 
         '--sort', 
         choices=['asc', 'desc'], 
         default='desc', 
-        help='Sort by issue priority',
+        help='Sort issues by priority.',
         type=str.lower
     )
     parser.add_argument(
         '-p', '--priority', 
         choices=['LOW', 'MEDIUM', 'HIGH'],
         type=str.upper,
-        help='Search by priority'
+        help='Filter issues by priority level.'
     )
 
     parser.add_argument(
         '--directory',
         default=ISSUES_DIR,
-        help='Custom issues directory',
+        help='Specify a custom directory for storing issues.',
         type=os.path.expanduser
+    )
+
+    parser.add_argument(
+        '--grid',
+        default=2,
+        help='Display issues in an N x N grid format.',
+        type=validate_grid
     )
 
     return parser.parse_args()
@@ -181,7 +219,7 @@ def main():
         delete_issue(args.directory, args.delete)
 
     else:
-        get_issues(args.directory, args.sort, args.priority)
+        get_issues(args.directory, args.sort, args.priority, args.grid)
 
 if __name__ == '__main__':
     main()
