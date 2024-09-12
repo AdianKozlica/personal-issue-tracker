@@ -170,35 +170,35 @@ def get_args():
         prog='Personal CLI issue tracker',
     )
 
-    parser.add_argument('-n', '--new', help='Creates a new issue')
-    parser.add_argument('-d', '--delete', help='Deletes a issue')
-    parser.add_argument('-e', '--edit', help='Opens an editor for an issue')
+    parser.add_argument('-n', '--new', help='Create a new issue.')
+    parser.add_argument('-d', '--delete', help='Delete an issue by name.')
+    parser.add_argument('-e', '--edit', help='Edit an existing issue by name.')
     parser.add_argument(
         '-s', 
         '--sort', 
         choices=['asc', 'desc'], 
         default='desc', 
-        help='Sort by issue priority',
+        help='Sort issues by priority.',
         type=str.lower
     )
     parser.add_argument(
         '-p', '--priority', 
         choices=['LOW', 'MEDIUM', 'HIGH'],
         type=str.upper,
-        help='Search by priority'
+        help='Filter issues by priority level.'
     )
 
     parser.add_argument(
         '--directory',
         default=ISSUES_DIR,
-        help='Custom issues directory',
+        help='Specify a custom directory for storing issues.',
         type=os.path.expanduser
     )
 
     parser.add_argument(
         '--grid',
         default=2,
-        help='Specify N x N grid for displaying issues',
+        help='Display issues in an N x N grid format.',
         type=validate_grid
     )
 
