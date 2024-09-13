@@ -254,7 +254,8 @@ def get_args():
     )
     
     parser.add_argument(
-        '-p', '--priority', 
+        '-p', 
+        '--priority', 
         choices=['LOW', 'MEDIUM', 'HIGH'],
         nargs='+',
         type=str.upper,
