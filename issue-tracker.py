@@ -118,7 +118,7 @@ def delete_issue(issues_dir: str, name: str):
 def get_issue_list(
     issues_dir: str,
     sort: str,
-    wanted_priority: str | None = None 
+    wanted_priorities: list[str] | None = None 
 ):
     issue_list = []
 
@@ -127,8 +127,8 @@ def get_issue_list(
         title, priority, due = parse_metadata(
             os.path.join(issues_dir, path)
         )
-        if wanted_priority:
-            if priority != wanted_priority:
+        if wanted_priorities:
+            if priority not in wanted_priorities:
                 continue
         
         issue_list.append([name, title, priority, due])
@@ -143,12 +143,12 @@ def get_issue_list(
 def get_issues_json(
     issues_dir: str,
     sort: str,
-    wanted_priorty: str | None = None
+    wanted_priorities: list[str] | None = None
 ):
     issue_list = get_issue_list(
         issues_dir,
         sort,
-        wanted_priorty,
+        wanted_priorities,
     )
 
     issues_json_list = []
@@ -171,7 +171,7 @@ def get_issues_json(
 def get_issues_csv(
     issues_dir: str,
     sort: str,
-    wanted_priority: str | None = None,
+    wanted_priorities: list[str] | None = None,
 ):
     with io.StringIO() as file:
         csv_writer = csv.writer(file, delimiter=';')
@@ -180,7 +180,7 @@ def get_issues_csv(
         issue_list =  get_issue_list(
             issues_dir,
             sort,
-            wanted_priority
+            wanted_priorities
         )
 
         for name, title, priority, due in issue_list:
@@ -196,13 +196,13 @@ def get_issues_csv(
 def get_issues(
     issues_dir: str, 
     sort: str, 
-    wanted_priority: str | None = None,
+    wanted_priorities: list[str] | None = None,
     grid = 2
 ):
     issue_list =  get_issue_list(
         issues_dir,
         sort,
-        wanted_priority
+        wanted_priorities
     )
 
     max_len = 0
@@ -254,8 +254,10 @@ def get_args():
     )
     
     parser.add_argument(
-        '-p', '--priority', 
+        '-p', 
+        '--priority', 
         choices=['LOW', 'MEDIUM', 'HIGH'],
+        nargs='+',
         type=str.upper,
         help='Filter issues by priority level.'
     )
