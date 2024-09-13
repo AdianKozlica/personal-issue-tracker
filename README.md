@@ -34,10 +34,10 @@ The CLI accepts the following arguments:
 
 Here is an example of what the output might look like when displaying issues:
 ```sh
-| Name: Issue                    | Name: Issue2                      |
-| Title: Some title              | Title: Some title2                |
-| Priority: ▄▆█                  | Priority: ▄▆█                     |
-| Due: 10-09-2024 00:30          | Due:                              |
+| Name: Issue                    | Name: Issue2                   |
+| Title: Some title              | Title: Some title2             |
+| Priority: ▄▆█                  | Priority: ▄▆█                  |
+| Due: 10-09-2024 00:30          | Due:                           |
 
 | Name: Issue3                   |
 | Title: Title3                  |
