@@ -2,18 +2,6 @@
 
 This is a command-line interface (CLI) tool for tracking issues. It allows you to create, delete, and edit issues directly from the terminal.
 
-## Features
-
-- **Create a new issue**: Add a new issue to the tracker.
-- **Delete an issue**: Remove an issue from the tracker by its name.
-- **Edit an issue**: Modify an existing issue by its name.
-- **Sort issues**: Sort issues by priority.
-- **Filter issues**: Filter issues by priority level.
-- **Specify custom directory**: Use a custom directory for storing issues.
-- **Display issues in grid format**: Display issues in an N x N grid format.
-- **Output issues in JSON format**: Output issues in JSON format.
-- **Output issues in CSV format**: Output issues in CSV format.
-
 ## Usage
 
 ### Command Line Arguments
